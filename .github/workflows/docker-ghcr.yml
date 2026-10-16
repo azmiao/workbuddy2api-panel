@@ -5,6 +5,7 @@ name: docker-ghcr
 #   - 手动触发 → 默认构建并推送，也可选择仅编译验证
 #   - PR 触碰构建相关文件 → 仅构建验证，不推送
 # tag 说明：默认分支推 latest + 分支名 + sha-xxxxxx；其他分支推分支名 + sha-xxxxxx；v1.2.3 推 1.2.3 / 1.2 / 1
+# GHCR 的 latest 在构建完成后再次发布，确保包页面默认安装命令使用 latest
 on:
   # 不配置 branches/tags，任意分支和 tag 的 push 都会触发
   push: {}
@@ -87,3 +88,18 @@ jobs:
           cache-to: type=gha,mode=max
           # 关闭 provenance attestation：避免 ghcr 页面出现 unknown/unknown 架构条目
           provenance: false
+
+      # 参考 muse2api：把 latest 作为最后一次 registry 写入，避免 GHCR 页面选中 sha 标签。
+      - name: Re-publish latest last
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="${IMAGE,,}"
+          short_sha="${GITHUB_SHA:0:7}"
+          docker buildx imagetools create \
+            --tag "${image}:latest" \
+            "${image}:sha-${short_sha}"
+          docker buildx imagetools inspect "${image}:latest"
