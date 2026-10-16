@@ -1,8 +1,11 @@
 auths/
 data/
+backups/
 *.tmp
 .git/
+.github/
 .gitignore
+.openbitfun/
 docs/
 scripts/__pycache__/
 # 根目录已提交/未提交的二进制产物不进构建上下文（与 .gitignore 对齐）
@@ -12,7 +15,14 @@ scripts/__pycache__/
 /signin_bin
 # 真实配置不进镜像（镜像默认用 config.example.json，生产以挂载卷覆盖）
 config.json
+*.key
+*.pem
+*.env
+.env
+.env.*
 PLAN.md
 SPEC.md
 LOOP.md
 README.md
+*.zip
+.DS_Store
