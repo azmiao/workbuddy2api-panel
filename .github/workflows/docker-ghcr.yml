@@ -1,14 +1,13 @@
 name: docker-ghcr
 
 # 多架构镜像（amd64/arm64）自动构建并发布到 ghcr.io：
-#   - push 到 main / 打 v* tag → 构建并推送
+#   - 任意分支或 tag 的 push → 构建并推送
 #   - 手动触发 → 默认构建并推送，也可选择仅编译验证
 #   - PR 触碰构建相关文件 → 仅构建验证，不推送
-# tag 说明：main 推 latest + main + sha-xxxxxx；v1.2.3 推 1.2.3 / 1.2 / 1
+# tag 说明：默认分支推 latest + 分支名 + sha-xxxxxx；其他分支推分支名 + sha-xxxxxx；v1.2.3 推 1.2.3 / 1.2 / 1
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
+  # 不配置 branches/tags，任意分支和 tag 的 push 都会触发
+  push: {}
   pull_request:
     paths:
       - "Dockerfile"
@@ -29,7 +28,7 @@ on:
         default: true
         type: boolean
 
-# 并发组：PR 取消过时构建；main/tag 按引用串行——发版时 main+tag 同推不再双跑
+# 并发组：PR 取消过时构建；每个引用按序构建，避免连续 push 重复并发
 # 同一份代码的多架构构建（QEMU arm64 一次不便宜）。
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
